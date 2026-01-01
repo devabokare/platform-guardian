@@ -1,73 +1,106 @@
-# Welcome to your Lovable project
+# 🛡 Super Admin Dashboard – LiftUpLabs
 
-## Project info
+A full-stack **Super Admin (Website Owner) Dashboard** built to manage and verify
+**Institutions, Students, and Counselors** across the LiftUpLabs platform.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+The Super Admin has **complete control** over users, verification, analytics,
+and system-wide settings.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🚀 Core Features
 
-**Use Lovable**
+- Super Admin authentication (JWT)
+- Institution verification system
+- Student verification system
+- Counselor verification system
+- Platform-wide user management
+- Verification logs & audit trails
+- Analytics & reports
+- Secure role-based access
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠 Tech Stack
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
+### Frontend
+- React.js
 - Tailwind CSS
+- Recharts / Chart.js
 
-## How can I deploy this project?
+### Backend
+- Node.js
+- Express.js
+- JWT Authentication
+- REST APIs
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Database
+- PostgreSQL
+- ORM: Prisma / Sequelize
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## 👤 Roles
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+| Role | Description |
+|---|---|
+| Super Admin | Website Owner / Platform Creator |
+| Institution Admin | School / College Admin |
+| Student | Platform Student |
+| Counselor | Platform Counselor |
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+
+
+
+super-admin-system/
+├── client/
+│ ├── src/
+│ │ ├── components/
+│ │ ├── pages/admin/
+│ │ ├── layouts/
+│ │ ├── services/
+│ │ └── utils/
+│
+├── server/
+│ ├── src/
+│ │ ├── controllers/
+│ │ ├── routes/
+│ │ ├── middlewares/
+│ │ ├── models/
+│ │ └── services/
+│
+├── database/
+│ └── schema.sql
+│
+├── .env.example
+└── README.md
+
+
+Full System Architecture (Text Diagram)
+
+[ Super Admin (Browser) ]
+          |
+          |  React Dashboard
+          v
+[ Frontend (React) ]
+          |
+          |  JWT Auth + REST APIs
+          v
+[ Node.js + Express API ]
+          |
+          |  ORM (Prisma / Sequelize)
+          v
+[ PostgreSQL Database ]
+          |
+          ├── Super Admins
+          ├── Institutions
+          ├── Students
+          ├── Counselors
+          ├── Verification Docs
+          └── Verification Logs
+
+
+
+## 📁 Project Structure
+
