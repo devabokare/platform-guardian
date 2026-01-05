@@ -11,6 +11,7 @@ import {
   LogOut,
   ChevronLeft,
   Menu,
+  CalendarDays,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Institutions', href: '/institutions', icon: Building2 },
   { name: 'Students', href: '/students', icon: GraduationCap },
   { name: 'Counselors', href: '/counselors', icon: Users },
+  { name: 'Events', href: '/events', icon: CalendarDays },
   { name: 'User Management', href: '/users', icon: UserCog },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Security & Logs', href: '/security', icon: Shield },
