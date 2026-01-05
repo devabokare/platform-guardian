@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Users, Clock, Plus, Edit, Trash2, Eye, Search } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Users, Clock, Plus, Edit, Trash2, Eye, Search, List, LayoutGrid } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +32,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { EventStatusBadge } from '@/components/dashboard/EventStatusBadge';
+import { format, isSameDay, parseISO } from 'date-fns';
 
 type EventStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
 type EventType = 'webinar' | 'workshop' | 'conference' | 'seminar' | 'orientation';
@@ -136,7 +139,17 @@ export default function Events() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
+
+  // Get events for the selected date
+  const eventsOnSelectedDate = selectedDate
+    ? events.filter((event) => isSameDay(parseISO(event.date), selectedDate))
+    : [];
+
+  // Get dates that have events for highlighting
+  const eventDates = events.map((event) => parseISO(event.date));
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
@@ -261,6 +274,27 @@ export default function Events() {
                 <SelectItem value="orientation">Orientation</SelectItem>
               </SelectContent>
             </Select>
+            {/* View Mode Toggle */}
+            <div className="flex rounded-lg border border-border p-1 bg-muted/30">
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="gap-2"
+              >
+                <List className="h-4 w-4" />
+                List
+              </Button>
+              <Button
+                variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('calendar')}
+                className="gap-2"
+              >
+                <LayoutGrid className="h-4 w-4" />
+                Calendar
+              </Button>
+            </div>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -323,101 +357,206 @@ export default function Events() {
           </Dialog>
         </div>
 
-        {/* Events Table */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="bg-muted/50 font-medium">Event</TableHead>
-                <TableHead className="bg-muted/50 font-medium">Type</TableHead>
-                <TableHead className="bg-muted/50 font-medium">Date & Time</TableHead>
-                <TableHead className="bg-muted/50 font-medium">Location</TableHead>
-                <TableHead className="bg-muted/50 font-medium">Attendees</TableHead>
-                <TableHead className="bg-muted/50 font-medium">Status</TableHead>
-                <TableHead className="bg-muted/50 font-medium">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEvents.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-medium text-foreground">{event.title}</span>
-                      <span className="text-xs text-muted-foreground line-clamp-1">
-                        {event.description}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${eventTypeColors[event.type]}`}
-                    >
-                      {event.type}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                        {new Date(event.date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {event.time}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="truncate max-w-[150px]">{event.location}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-sm">
-                        {event.attendees}/{event.maxAttendees}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <EventStatusBadge status={event.status} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setSelectedEvent(event)}
+        {/* Calendar View */}
+        {viewMode === 'calendar' && (
+          <div className="grid gap-6 lg:grid-cols-[350px_1fr]">
+            {/* Calendar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Event Calendar</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="rounded-md border pointer-events-auto"
+                  modifiers={{
+                    hasEvent: eventDates,
+                  }}
+                  modifiersStyles={{
+                    hasEvent: {
+                      fontWeight: 'bold',
+                      backgroundColor: 'hsl(var(--primary) / 0.1)',
+                      color: 'hsl(var(--primary))',
+                    },
+                  }}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Events on Selected Date */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Events on {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select a date'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {eventsOnSelectedDate.length > 0 ? (
+                  <div className="space-y-4">
+                    {eventsOnSelectedDate.map((event) => (
+                      <div
+                        key={event.id}
+                        className="flex items-start gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
                       >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      {event.status === 'upcoming' && (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                          <CalendarIcon className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">{event.title}</h4>
+                            <EventStatusBadge status={event.status} />
+                          </div>
+                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                          <div className="flex flex-wrap gap-3 pt-2 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {event.time}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5" />
+                              {event.location}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3.5 w-3.5" />
+                              {event.attendees}/{event.maxAttendees}
+                            </span>
+                          </div>
+                          <div className="pt-2">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${eventTypeColors[event.type]}`}
+                            >
+                              {event.type}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setSelectedEvent(event)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <CalendarIcon className="h-12 w-12 text-muted-foreground/50" />
+                    <h3 className="mt-4 text-lg font-medium">No events</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      There are no events scheduled for this date.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Events Table (List View) */}
+        {viewMode === 'list' && (
+          <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="bg-muted/50 font-medium">Event</TableHead>
+                  <TableHead className="bg-muted/50 font-medium">Type</TableHead>
+                  <TableHead className="bg-muted/50 font-medium">Date & Time</TableHead>
+                  <TableHead className="bg-muted/50 font-medium">Location</TableHead>
+                  <TableHead className="bg-muted/50 font-medium">Attendees</TableHead>
+                  <TableHead className="bg-muted/50 font-medium">Status</TableHead>
+                  <TableHead className="bg-muted/50 font-medium">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEvents.map((event) => (
+                  <TableRow key={event.id}>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-foreground">{event.title}</span>
+                        <span className="text-xs text-muted-foreground line-clamp-1">
+                          {event.description}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${eventTypeColors[event.type]}`}
+                      >
+                        {event.type}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1 text-sm">
+                          <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                          {new Date(event.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {event.time}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="truncate max-w-[150px]">{event.location}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-sm">
+                          {event.attendees}/{event.maxAttendees}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <EventStatusBadge status={event.status} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleCancelEvent(event.id)}
+                          className="h-8 w-8"
+                          onClick={() => setSelectedEvent(event)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        {event.status === 'upcoming' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => handleCancelEvent(event.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
 
         {/* Event Details Dialog */}
         <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
